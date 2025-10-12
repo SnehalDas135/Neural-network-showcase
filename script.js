@@ -85,7 +85,7 @@ const shuffledPositions = [...positions].sort(() => Math.random() - 0.5);
 const observer = new IntersectionObserver((entries) => {
     entries.forEach(entry => {
         if (entry.isIntersecting) {
-            neuronViz.innerHTML = ''; // Clear existing neurons
+            neuronViz.innerHTML = '';
             shuffledPositions.forEach((pos, i) => {
                 setTimeout(() => {
                     const neuron = document.createElement('div');
@@ -122,10 +122,8 @@ const layers = [4, 6, 6, 3];
 const layerSpacing = 150;
 const nodeRadius = 15;
 
-// Store node positions
 const nodePositions = [];
 
-// Calculate and store all node positions
 layers.forEach((nodeCount, layerIndex) => {
     const x = 80 + layerIndex * layerSpacing;
     const layerHeight = nodeCount * 60;
@@ -141,7 +139,6 @@ layers.forEach((nodeCount, layerIndex) => {
     }
 });
 
-// Data particles traveling through connections
 class DataParticle {
     constructor(startNode, endNode, layerIndex) {
         this.startX = startNode.x + nodeRadius;
@@ -176,7 +173,6 @@ class DataParticle {
     }
 }
 
-// Create particles
 const particles = [];
 nodePositions.forEach((layer, layerIndex) => {
     if (layerIndex < nodePositions.length - 1) {
@@ -194,7 +190,6 @@ nodePositions.forEach((layer, layerIndex) => {
 function animateLayers() {
     lctx.clearRect(0, 0, layerCanvas.width, layerCanvas.height);
     
-    // Draw connections
     nodePositions.forEach((layer, layerIndex) => {
         if (layerIndex < nodePositions.length - 1) {
             layer.forEach(startNode => {
@@ -210,13 +205,11 @@ function animateLayers() {
         }
     });
     
-    // Update and draw particles
     particles.forEach(particle => {
         particle.update();
         particle.draw();
     });
     
-    // Draw nodes on top
     nodePositions.forEach((layer) => {
         layer.forEach(node => {
             lctx.beginPath();
@@ -237,157 +230,155 @@ function animateLayers() {
 animateLayers();
 
 // ============================================
-// 3D Rotating Neuron Mesh Structure
+// Biological Neuron Cell (like image 2)
 // ============================================
 const typesCanvas = document.getElementById('typesCanvas');
 const tctx = typesCanvas.getContext('2d');
 typesCanvas.width = 600;
 typesCanvas.height = 500;
 
-const centerX = typesCanvas.width / 2;
-const centerY = typesCanvas.height / 2;
+const neuronCenterX = typesCanvas.width / 2;
+const neuronCenterY = typesCanvas.height / 2;
 
-// Create 3D sphere points for neuron body
-const neuronPoints = [];
-const numPoints = 50;
-const sphereRadius = 80;
-
-for (let i = 0; i < numPoints; i++) {
-    const theta = Math.acos(2 * Math.random() - 1);
-    const phi = Math.random() * Math.PI * 2;
-    
-    neuronPoints.push({
-        x: sphereRadius * Math.sin(theta) * Math.cos(phi),
-        y: sphereRadius * Math.sin(theta) * Math.sin(phi),
-        z: sphereRadius * Math.cos(theta)
-    });
-}
-
-// Create dendrite branches
-const dendrites = [];
-const numDendrites = 8;
-
-for (let i = 0; i < numDendrites; i++) {
-    const angle = (i / numDendrites) * Math.PI * 2;
-    const branch = [];
-    const segments = 5;
-    
-    for (let j = 0; j < segments; j++) {
-        const distance = sphereRadius + j * 30;
-        const spread = j * 15;
-        branch.push({
-            x: Math.cos(angle) * distance + (Math.random() - 0.5) * spread,
-            y: Math.sin(angle) * distance + (Math.random() - 0.5) * spread,
-            z: (Math.random() - 0.5) * spread
-        });
+// Create organic dendrite branches
+class DendriteBranch {
+    constructor(startAngle, length, thickness) {
+        this.segments = [];
+        let x = 0;
+        let y = 0;
+        let angle = startAngle;
+        
+        for (let i = 0; i < length; i++) {
+            angle += (Math.random() - 0.5) * 0.3;
+            x += Math.cos(angle) * 8;
+            y += Math.sin(angle) * 8;
+            this.segments.push({ x, y, thickness: thickness * (1 - i / length) });
+        }
     }
-    dendrites.push(branch);
 }
 
-let rotationX = 0;
-let rotationY = 0;
+const mainDendrites = [];
+const numMainDendrites = 6;
 
-// Rotation function
-function rotate3D(point, angleX, angleY) {
-    // Rotate around X axis
-    let y = point.y * Math.cos(angleX) - point.z * Math.sin(angleX);
-    let z = point.y * Math.sin(angleX) + point.z * Math.cos(angleX);
+for (let i = 0; i < numMainDendrites; i++) {
+    const angle = (i / numMainDendrites) * Math.PI * 2;
+    mainDendrites.push({
+        branch: new DendriteBranch(angle, 15, 4),
+        subBranches: []
+    });
     
-    // Rotate around Y axis
-    let x = point.x * Math.cos(angleY) - z * Math.sin(angleY);
-    z = point.x * Math.sin(angleY) + z * Math.cos(angleY);
-    
-    return { x, y, z };
+    // Add sub-branches
+    for (let j = 0; j < 3; j++) {
+        const subAngle = angle + (Math.random() - 0.5) * 0.8;
+        mainDendrites[i].subBranches.push(
+            new DendriteBranch(subAngle, 8, 2)
+        );
+    }
 }
 
-// Project 3D to 2D
-function project(point) {
-    const scale = 200 / (200 + point.z);
-    return {
-        x: centerX + point.x * scale,
-        y: centerY + point.y * scale,
-        z: point.z
-    };
-}
+// Axon (long extension)
+const axon = new DendriteBranch(Math.PI * 0.3, 25, 5);
+
+let neuronRotation = 0;
 
 function animateTypes() {
     tctx.clearRect(0, 0, typesCanvas.width, typesCanvas.height);
     
-    rotationY += 0.008;
-    rotationX += 0.005;
+    neuronRotation += 0.003;
     
-    // Rotate and project all points
-    const projectedPoints = neuronPoints.map(p => {
-        const rotated = rotate3D(p, rotationX, rotationY);
-        return project(rotated);
-    });
+    tctx.save();
+    tctx.translate(neuronCenterX, neuronCenterY);
+    tctx.rotate(neuronRotation);
     
-    // Draw connections between nearby points
-    tctx.strokeStyle = 'rgba(102, 126, 234, 0.3)';
-    tctx.lineWidth = 1;
-    
-    for (let i = 0; i < projectedPoints.length; i++) {
-        for (let j = i + 1; j < projectedPoints.length; j++) {
-            const dx = neuronPoints[i].x - neuronPoints[j].x;
-            const dy = neuronPoints[i].y - neuronPoints[j].y;
-            const dz = neuronPoints[i].z - neuronPoints[j].z;
-            const distance = Math.sqrt(dx * dx + dy * dy + dz * dz);
-            
-            if (distance < sphereRadius * 1.2) {
-                const opacity = 0.3 * (1 - distance / (sphereRadius * 1.2));
-                tctx.strokeStyle = `rgba(102, 126, 234, ${opacity})`;
-                tctx.beginPath();
-                tctx.moveTo(projectedPoints[i].x, projectedPoints[i].y);
-                tctx.lineTo(projectedPoints[j].x, projectedPoints[j].y);
-                tctx.stroke();
-            }
+    // Draw axon (the long branch)
+    tctx.strokeStyle = 'rgba(102, 126, 234, 0.6)';
+    tctx.lineWidth = 4;
+    tctx.lineCap = 'round';
+    tctx.beginPath();
+    tctx.moveTo(0, 0);
+    axon.segments.forEach((seg, i) => {
+        if (i === 0) {
+            tctx.moveTo(seg.x, seg.y);
+        } else {
+            tctx.lineTo(seg.x, seg.y);
+            tctx.lineWidth = seg.thickness;
         }
+    });
+    tctx.stroke();
+    
+    // Draw axon terminals
+    const lastSeg = axon.segments[axon.segments.length - 1];
+    for (let i = 0; i < 4; i++) {
+        const angle = (i / 4) * Math.PI * 2;
+        const termX = lastSeg.x + Math.cos(angle) * 15;
+        const termY = lastSeg.y + Math.sin(angle) * 15;
+        
+        tctx.beginPath();
+        tctx.moveTo(lastSeg.x, lastSeg.y);
+        tctx.lineTo(termX, termY);
+        tctx.strokeStyle = 'rgba(102, 126, 234, 0.5)';
+        tctx.lineWidth = 2;
+        tctx.stroke();
+        
+        tctx.beginPath();
+        tctx.arc(termX, termY, 3, 0, Math.PI * 2);
+        tctx.fillStyle = 'rgba(102, 126, 234, 0.8)';
+        tctx.fill();
     }
     
     // Draw dendrites
-    dendrites.forEach(branch => {
-        const projectedBranch = branch.map(p => {
-            const rotated = rotate3D(p, rotationX, rotationY);
-            return project(rotated);
-        });
-        
-        tctx.strokeStyle = 'rgba(102, 126, 234, 0.4)';
-        tctx.lineWidth = 2;
+    mainDendrites.forEach(dendrite => {
+        // Main branch
+        tctx.strokeStyle = 'rgba(102, 126, 234, 0.6)';
+        tctx.lineWidth = 4;
         tctx.beginPath();
-        tctx.moveTo(projectedBranch[0].x, projectedBranch[0].y);
-        
-        for (let i = 1; i < projectedBranch.length; i++) {
-            tctx.lineTo(projectedBranch[i].x, projectedBranch[i].y);
-        }
+        dendrite.branch.segments.forEach((seg, i) => {
+            if (i === 0) {
+                tctx.moveTo(seg.x, seg.y);
+            } else {
+                tctx.lineTo(seg.x, seg.y);
+                tctx.lineWidth = seg.thickness;
+            }
+        });
         tctx.stroke();
         
-        const lastPoint = projectedBranch[projectedBranch.length - 1];
-        tctx.beginPath();
-        tctx.arc(lastPoint.x, lastPoint.y, 3, 0, Math.PI * 2);
-        tctx.fillStyle = 'rgba(102, 126, 234, 0.8)';
-        tctx.fill();
+        // Sub-branches
+        dendrite.subBranches.forEach(subBranch => {
+            tctx.strokeStyle = 'rgba(102, 126, 234, 0.5)';
+            tctx.lineWidth = 2;
+            tctx.beginPath();
+            subBranch.segments.forEach((seg, i) => {
+                if (i === 0) {
+                    tctx.moveTo(seg.x, seg.y);
+                } else {
+                    tctx.lineTo(seg.x, seg.y);
+                    tctx.lineWidth = seg.thickness;
+                }
+            });
+            tctx.stroke();
+        });
     });
     
-    // Draw points
-    projectedPoints.forEach(point => {
-        tctx.beginPath();
-        tctx.arc(point.x, point.y, 2, 0, Math.PI * 2);
-        tctx.fillStyle = 'rgba(102, 126, 234, 0.6)';
-        tctx.fill();
-    });
-    
-    // Draw nucleus
-    const nucleusSize = 15;
-    const gradient = tctx.createRadialGradient(centerX, centerY, 0, centerX, centerY, nucleusSize);
-    gradient.addColorStop(0, 'rgba(102, 126, 234, 0.8)');
-    gradient.addColorStop(1, 'rgba(118, 75, 162, 0.4)');
+    // Draw cell body (soma) with glow
+    const gradient = tctx.createRadialGradient(0, 0, 0, 0, 0, 30);
+    gradient.addColorStop(0, 'rgba(102, 126, 234, 0.9)');
+    gradient.addColorStop(0.5, 'rgba(102, 126, 234, 0.6)');
+    gradient.addColorStop(1, 'rgba(102, 126, 234, 0.2)');
     
     tctx.beginPath();
-    tctx.arc(centerX, centerY, nucleusSize, 0, Math.PI * 2);
+    tctx.arc(0, 0, 25, 0, Math.PI * 2);
     tctx.fillStyle = gradient;
-    tctx.shadowBlur = 20;
-    tctx.shadowColor = 'rgba(102, 126, 234, 0.6)';
+    tctx.shadowBlur = 30;
+    tctx.shadowColor = 'rgba(102, 126, 234, 0.8)';
     tctx.fill();
+    
+    // Draw nucleus
+    tctx.beginPath();
+    tctx.arc(0, 0, 12, 0, Math.PI * 2);
+    tctx.fillStyle = 'rgba(150, 180, 255, 0.5)';
+    tctx.fill();
+    
+    tctx.restore();
     
     requestAnimationFrame(animateTypes);
 }
@@ -395,7 +386,7 @@ function animateTypes() {
 animateTypes();
 
 // ============================================
-// Processor/Chip Visualization with subtle animation
+// Microchip/Processor (like image 3)
 // ============================================
 const applicationsCanvas = document.getElementById('applicationsCanvas');
 const actx = applicationsCanvas.getContext('2d');
@@ -404,143 +395,111 @@ applicationsCanvas.height = 500;
 
 const chipCenterX = applicationsCanvas.width / 2;
 const chipCenterY = applicationsCanvas.height / 2;
+const chipSize = 180;
+const pinLength = 25;
+const pinWidth = 8;
+const pinsPerSide = 6;
 
-// Chip structure
-const chipSize = 200;
-const gridLines = 8;
-let pulsePhase = 0;
-
-// Create circuit paths
-const circuitPaths = [];
-for (let i = 0; i < 20; i++) {
-    const startX = chipCenterX - chipSize / 2 + Math.random() * chipSize;
-    const startY = chipCenterY - chipSize / 2 + Math.random() * chipSize;
-    const length = 30 + Math.random() * 50;
-    const angle = Math.random() < 0.5 ? 0 : Math.PI / 2;
-    
-    circuitPaths.push({
-        x: startX,
-        y: startY,
-        length: length,
-        angle: angle,
-        phase: Math.random() * Math.PI * 2
-    });
-}
-
-// Data flow particles on chip
-class ChipParticle {
-    constructor() {
-        this.reset();
-    }
-    
-    reset() {
-        const path = circuitPaths[Math.floor(Math.random() * circuitPaths.length)];
-        this.x = path.x;
-        this.y = path.y;
-        this.targetX = path.x + Math.cos(path.angle) * path.length;
-        this.targetY = path.y + Math.sin(path.angle) * path.length;
-        this.progress = 0;
-        this.speed = 0.01 + Math.random() * 0.01;
-    }
-    
-    update() {
-        this.progress += this.speed;
-        if (this.progress > 1) {
-            this.reset();
-        }
-    }
-    
-    draw() {
-        const x = this.x + (this.targetX - this.x) * this.progress;
-        const y = this.y + (this.targetY - this.y) * this.progress;
-        
-        actx.beginPath();
-        actx.arc(x, y, 2, 0, Math.PI * 2);
-        actx.fillStyle = 'rgba(102, 126, 234, 0.8)';
-        actx.fill();
-        actx.shadowBlur = 5;
-        actx.shadowColor = 'rgba(102, 126, 234, 0.6)';
-    }
-}
-
-const chipParticles = [];
-for (let i = 0; i < 15; i++) {
-    chipParticles.push(new ChipParticle());
-}
+let chipPulse = 0;
 
 function animateApplications() {
     actx.clearRect(0, 0, applicationsCanvas.width, applicationsCanvas.height);
     
-    pulsePhase += 0.02;
-    const pulse = Math.sin(pulsePhase) * 0.3 + 0.7;
+    chipPulse += 0.03;
+    const pulse = Math.sin(chipPulse) * 0.3 + 0.7;
     
-    // Draw chip outline
-    actx.strokeStyle = `rgba(102, 126, 234, ${0.4 * pulse})`;
-    actx.lineWidth = 2;
-    actx.strokeRect(
-        chipCenterX - chipSize / 2,
-        chipCenterY - chipSize / 2,
-        chipSize,
-        chipSize
-    );
-    
-    // Draw corner pins
-    const pinSize = 15;
-    const corners = [
-        { x: chipCenterX - chipSize / 2, y: chipCenterY - chipSize / 2 },
-        { x: chipCenterX + chipSize / 2, y: chipCenterY - chipSize / 2 },
-        { x: chipCenterX - chipSize / 2, y: chipCenterY + chipSize / 2 },
-        { x: chipCenterX + chipSize / 2, y: chipCenterY + chipSize / 2 }
-    ];
-    
-    corners.forEach(corner => {
-        actx.strokeStyle = 'rgba(102, 126, 234, 0.5)';
-        actx.lineWidth = 2;
-        actx.strokeRect(corner.x - pinSize / 2, corner.y - pinSize / 2, pinSize, pinSize);
-    });
-    
-    // Draw grid lines
-    actx.strokeStyle = 'rgba(102, 126, 234, 0.2)';
+    // Draw pins on all 4 sides
+    actx.fillStyle = `rgba(102, 126, 234, ${0.7 * pulse})`;
+    actx.strokeStyle = `rgba(102, 126, 234, ${0.8 * pulse})`;
     actx.lineWidth = 1;
     
-    for (let i = 1; i < gridLines; i++) {
-        const offset = (chipSize / gridLines) * i;
+    // Top pins
+    for (let i = 0; i < pinsPerSide; i++) {
+        const x = chipCenterX - (chipSize / 2) + (chipSize / (pinsPerSide + 1)) * (i + 1);
+        const y = chipCenterY - chipSize / 2;
+        
+        actx.fillRect(x - pinWidth / 2, y - pinLength, pinWidth, pinLength);
+        actx.strokeRect(x - pinWidth / 2, y - pinLength, pinWidth, pinLength);
+    }
+    
+    // Bottom pins
+    for (let i = 0; i < pinsPerSide; i++) {
+        const x = chipCenterX - (chipSize / 2) + (chipSize / (pinsPerSide + 1)) * (i + 1);
+        const y = chipCenterY + chipSize / 2;
+        
+        actx.fillRect(x - pinWidth / 2, y, pinWidth, pinLength);
+        actx.strokeRect(x - pinWidth / 2, y, pinWidth, pinLength);
+    }
+    
+    // Left pins
+    for (let i = 0; i < pinsPerSide; i++) {
+        const x = chipCenterX - chipSize / 2;
+        const y = chipCenterY - (chipSize / 2) + (chipSize / (pinsPerSide + 1)) * (i + 1);
+        
+        actx.fillRect(x - pinLength, y - pinWidth / 2, pinLength, pinWidth);
+        actx.strokeRect(x - pinLength, y - pinWidth / 2, pinLength, pinWidth);
+    }
+    
+    // Right pins
+    for (let i = 0; i < pinsPerSide; i++) {
+        const x = chipCenterX + chipSize / 2;
+        const y = chipCenterY - (chipSize / 2) + (chipSize / (pinsPerSide + 1)) * (i + 1);
+        
+        actx.fillRect(x, y - pinWidth / 2, pinLength, pinWidth);
+        actx.strokeRect(x, y - pinWidth / 2, pinLength, pinWidth);
+    }
+    
+    // Draw main chip body with rounded corners
+    const cornerRadius = 10;
+    actx.strokeStyle = `rgba(102, 126, 234, ${0.8 * pulse})`;
+    actx.lineWidth = 3;
+    actx.beginPath();
+    actx.moveTo(chipCenterX - chipSize / 2 + cornerRadius, chipCenterY - chipSize / 2);
+    actx.lineTo(chipCenterX + chipSize / 2 - cornerRadius, chipCenterY - chipSize / 2);
+    actx.arcTo(chipCenterX + chipSize / 2, chipCenterY - chipSize / 2, chipCenterX + chipSize / 2, chipCenterY - chipSize / 2 + cornerRadius, cornerRadius);
+    actx.lineTo(chipCenterX + chipSize / 2, chipCenterY + chipSize / 2 - cornerRadius);
+    actx.arcTo(chipCenterX + chipSize / 2, chipCenterY + chipSize / 2, chipCenterX + chipSize / 2 - cornerRadius, chipCenterY + chipSize / 2, cornerRadius);
+    actx.lineTo(chipCenterX - chipSize / 2 + cornerRadius, chipCenterY + chipSize / 2);
+    actx.arcTo(chipCenterX - chipSize / 2, chipCenterY + chipSize / 2, chipCenterX - chipSize / 2, chipCenterY + chipSize / 2 - cornerRadius, cornerRadius);
+    actx.lineTo(chipCenterX - chipSize / 2, chipCenterY - chipSize / 2 + cornerRadius);
+    actx.arcTo(chipCenterX - chipSize / 2, chipCenterY - chipSize / 2, chipCenterX - chipSize / 2 + cornerRadius, chipCenterY - chipSize / 2, cornerRadius);
+    actx.closePath();
+    actx.stroke();
+    
+    // Fill with gradient
+    const chipGradient = actx.createRadialGradient(chipCenterX, chipCenterY, 0, chipCenterX, chipCenterY, chipSize / 2);
+    chipGradient.addColorStop(0, `rgba(102, 126, 234, ${0.3 * pulse})`);
+    chipGradient.addColorStop(1, 'rgba(102, 126, 234, 0.05)');
+    actx.fillStyle = chipGradient;
+    actx.fill();
+    
+    // Draw circuit pattern inside
+    const circuitSize = chipSize - 40;
+    const gridSize = 8;
+    
+    actx.strokeStyle = `rgba(102, 126, 234, ${0.3 * pulse})`;
+    actx.lineWidth = 1;
+    
+    // Draw grid pattern
+    for (let i = 1; i < gridSize; i++) {
+        const offset = (circuitSize / gridSize) * i;
+        
         // Vertical lines
         actx.beginPath();
-        actx.moveTo(chipCenterX - chipSize / 2 + offset, chipCenterY - chipSize / 2);
-        actx.lineTo(chipCenterX - chipSize / 2 + offset, chipCenterY + chipSize / 2);
+        actx.moveTo(chipCenterX - circuitSize / 2 + offset, chipCenterY - circuitSize / 2);
+        actx.lineTo(chipCenterX - circuitSize / 2 + offset, chipCenterY + circuitSize / 2);
         actx.stroke();
         
         // Horizontal lines
         actx.beginPath();
-        actx.moveTo(chipCenterX - chipSize / 2, chipCenterY - chipSize / 2 + offset);
-        actx.lineTo(chipCenterX + chipSize / 2, chipCenterY - chipSize / 2 + offset);
+        actx.moveTo(chipCenterX - circuitSize / 2, chipCenterY - circuitSize / 2 + offset);
+        actx.lineTo(chipCenterX + circuitSize / 2, chipCenterY - circuitSize / 2 + offset);
         actx.stroke();
     }
     
-    // Draw circuit paths
-    circuitPaths.forEach(path => {
-        const pathPulse = Math.sin(pulsePhase + path.phase) * 0.3 + 0.5;
-        actx.strokeStyle = `rgba(102, 126, 234, ${0.3 * pathPulse})`;
-        actx.lineWidth = 2;
-        actx.beginPath();
-        actx.moveTo(path.x, path.y);
-        actx.lineTo(
-            path.x + Math.cos(path.angle) * path.length,
-            path.y + Math.sin(path.angle) * path.length
-        );
-        actx.stroke();
-        
-        // Draw connection points
-        actx.beginPath();
-        actx.arc(path.x, path.y, 3, 0, Math.PI * 2);
-        actx.fillStyle = `rgba(102, 126, 234, ${0.5 * pathPulse})`;
-        actx.fill();
-    });
-    
-    // Draw center core with pulse
-    const coreSize = 40;
-    actx.strokeStyle = `rgba(102, 126, 234, ${0.6 * pulse})`;
+    // Draw center core
+    const coreSize = 60;
+    actx.strokeStyle = `rgba(102, 126, 234, ${0.7 * pulse})`;
     actx.lineWidth = 2;
     actx.strokeRect(
         chipCenterX - coreSize / 2,
@@ -549,10 +508,11 @@ function animateApplications() {
         coreSize
     );
     
-    const gradient = actx.createRadialGradient(chipCenterX, chipCenterY, 0, chipCenterX, chipCenterY, coreSize / 2);
-    gradient.addColorStop(0, `rgba(102, 126, 234, ${0.3 * pulse})`);
-    gradient.addColorStop(1, 'rgba(102, 126, 234, 0)');
-    actx.fillStyle = gradient;
+    // Core glow
+    const coreGradient = actx.createRadialGradient(chipCenterX, chipCenterY, 0, chipCenterX, chipCenterY, coreSize / 2);
+    coreGradient.addColorStop(0, `rgba(102, 126, 234, ${0.5 * pulse})`);
+    coreGradient.addColorStop(1, 'rgba(102, 126, 234, 0.1)');
+    actx.fillStyle = coreGradient;
     actx.fillRect(
         chipCenterX - coreSize / 2,
         chipCenterY - coreSize / 2,
@@ -560,11 +520,18 @@ function animateApplications() {
         coreSize
     );
     
-    // Update and draw particles
-    chipParticles.forEach(particle => {
-        particle.update();
-        particle.draw();
-    });
+    // Add small circuit nodes
+    for (let i = 0; i < 12; i++) {
+        const angle = (i / 12) * Math.PI * 2 + chipPulse * 0.5;
+        const radius = 50;
+        const x = chipCenterX + Math.cos(angle) * radius;
+        const y = chipCenterY + Math.sin(angle) * radius;
+        
+        actx.beginPath();
+        actx.arc(x, y, 2, 0, Math.PI * 2);
+        actx.fillStyle = `rgba(102, 126, 234, ${0.8 * pulse})`;
+        actx.fill();
+    }
     
     requestAnimationFrame(animateApplications);
 }
@@ -572,7 +539,7 @@ function animateApplications() {
 animateApplications();
 
 // ============================================
-// Wireframe Earth Globe
+// Wireframe Globe (like image 1)
 // ============================================
 const futureCanvas = document.getElementById('futureCanvas');
 const fctx = futureCanvas.getContext('2d');
@@ -583,24 +550,6 @@ const globeCenterX = futureCanvas.width / 2;
 const globeCenterY = futureCanvas.height / 2;
 const globeRadius = 120;
 
-// Create latitude and longitude lines
-const latitudes = [];
-const longitudes = [];
-const numLat = 9;
-const numLong = 12;
-
-// Generate latitude circles
-for (let i = 0; i < numLat; i++) {
-    const lat = (i / (numLat - 1)) * Math.PI - Math.PI / 2;
-    latitudes.push(lat);
-}
-
-// Generate longitude lines
-for (let i = 0; i < numLong; i++) {
-    const long = (i / numLong) * Math.PI * 2;
-    longitudes.push(long);
-}
-
 let globeRotation = 0;
 
 function animateFuture() {
@@ -608,21 +557,32 @@ function animateFuture() {
     
     globeRotation += 0.005;
     
-    // Draw longitude lines (vertical)
-    longitudes.forEach(long => {
-        fctx.strokeStyle = 'rgba(102, 126, 234, 0.4)';
-        fctx.lineWidth = 1;
+    // Draw outer glow
+    const outerGlow = fctx.createRadialGradient(globeCenterX, globeCenterY, globeRadius * 0.8, globeCenterX, globeCenterY, globeRadius * 1.3);
+    outerGlow.addColorStop(0, 'rgba(102, 126, 234, 0.3)');
+    outerGlow.addColorStop(1, 'rgba(102, 126, 234, 0)');
+    fctx.fillStyle = outerGlow;
+    fctx.beginPath();
+    fctx.arc(globeCenterX, globeCenterY, globeRadius * 1.3, 0, Math.PI * 2);
+    fctx.fill();
+    
+    // Draw latitude lines
+    const numLatLines = 12;
+    for (let i = 0; i < numLatLines; i++) {
+        const lat = (i / numLatLines) * Math.PI - Math.PI / 2;
+        
+        fctx.strokeStyle = 'rgba(102, 126, 234, 0.5)';
+        fctx.lineWidth = i === Math.floor(numLatLines / 2) ? 2 : 1; // Equator thicker
         fctx.beginPath();
         
         let firstPoint = true;
-        for (let lat = -Math.PI / 2; lat <= Math.PI / 2; lat += 0.1) {
+        for (let long = 0; long <= Math.PI * 2; long += 0.05) {
             const x3d = globeRadius * Math.cos(lat) * Math.cos(long + globeRotation);
             const y3d = globeRadius * Math.sin(lat);
             const z3d = globeRadius * Math.cos(lat) * Math.sin(long + globeRotation);
             
-            // Only draw front-facing lines
-            if (z3d > -globeRadius * 0.3) {
-                const scale = 200 / (200 + z3d);
+            if (z3d > -globeRadius * 0.5) {
+                const scale = 250 / (250 + z3d);
                 const x2d = globeCenterX + x3d * scale;
                 const y2d = globeCenterY + y3d * scale;
                 
@@ -635,23 +595,25 @@ function animateFuture() {
             }
         }
         fctx.stroke();
-    });
+    }
     
-    // Draw latitude lines (horizontal)
-    latitudes.forEach(lat => {
-        fctx.strokeStyle = 'rgba(102, 126, 234, 0.4)';
+    // Draw longitude lines
+    const numLongLines = 16;
+    for (let i = 0; i < numLongLines; i++) {
+        const long = (i / numLongLines) * Math.PI * 2;
+        
+        fctx.strokeStyle = 'rgba(102, 126, 234, 0.5)';
         fctx.lineWidth = 1;
         fctx.beginPath();
         
         let firstPoint = true;
-        for (let long = 0; long <= Math.PI * 2; long += 0.1) {
+        for (let lat = -Math.PI / 2; lat <= Math.PI / 2; lat += 0.05) {
             const x3d = globeRadius * Math.cos(lat) * Math.cos(long + globeRotation);
             const y3d = globeRadius * Math.sin(lat);
             const z3d = globeRadius * Math.cos(lat) * Math.sin(long + globeRotation);
             
-            // Only draw front-facing lines
-            if (z3d > -globeRadius * 0.3) {
-                const scale = 200 / (200 + z3d);
+            if (z3d > -globeRadius * 0.5) {
+                const scale = 250 / (250 + z3d);
                 const x2d = globeCenterX + x3d * scale;
                 const y2d = globeCenterY + y3d * scale;
                 
@@ -664,52 +626,20 @@ function animateFuture() {
             }
         }
         fctx.stroke();
-    });
+    }
     
-    // Draw equator line brighter
+    // Draw outer circle edge
     fctx.strokeStyle = 'rgba(102, 126, 234, 0.6)';
     fctx.lineWidth = 2;
     fctx.beginPath();
-    let firstPoint = true;
-    for (let long = 0; long <= Math.PI * 2; long += 0.05) {
-        const x3d = globeRadius * Math.cos(long + globeRotation);
-        const y3d = 0;
-        const z3d = globeRadius * Math.sin(long + globeRotation);
-        
-        if (z3d > -globeRadius * 0.3) {
-            const scale = 200 / (200 + z3d);
-            const x2d = globeCenterX + x3d * scale;
-            const y2d = globeCenterY + y3d * scale;
-            
-            if (firstPoint) {
-                fctx.moveTo(x2d, y2d);
-                firstPoint = false;
-            } else {
-                fctx.lineTo(x2d, y2d);
-            }
-        }
-    }
+    fctx.arc(globeCenterX, globeCenterY, globeRadius, 0, Math.PI * 2);
     fctx.stroke();
     
-    // Draw connection points at intersections
-    latitudes.forEach(lat => {
-        longitudes.forEach(long => {
-            const x3d = globeRadius * Math.cos(lat) * Math.cos(long + globeRotation);
-            const y3d = globeRadius * Math.sin(lat);
-            const z3d = globeRadius * Math.cos(lat) * Math.sin(long + globeRotation);
-            
-            if (z3d > 0) {
-                const scale = 200 / (200 + z3d);
-                const x2d = globeCenterX + x3d * scale;
-                const y2d = globeCenterY + y3d * scale;
-                
-                fctx.beginPath();
-                fctx.arc(x2d, y2d, 2, 0, Math.PI * 2);
-                fctx.fillStyle = 'rgba(102, 126, 234, 0.6)';
-                fctx.fill();
-            }
-        });
-    });
+    // Add glow effect
+    fctx.shadowBlur = 20;
+    fctx.shadowColor = 'rgba(102, 126, 234, 0.5)';
+    fctx.stroke();
+    fctx.shadowBlur = 0;
     
     requestAnimationFrame(animateFuture);
 }
