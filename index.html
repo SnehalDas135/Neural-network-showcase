@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neural Network</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <nav>
+        <div class="container">
+            <h1>Neural Network</h1>
+            <ul>
+                <li><a href="#home">Home</a></li>
+                <li><a href="#technology">Technology</a></li>
+                <li><a href="#features">Features</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <section class="hero" id="home">
+        <div class="brain-container">
+            <canvas id="brainCanvas"></canvas>
+        </div>
+        <h2>Artificial Neural Network</h2>
+        <p>Experience the future of artificial intelligence with neural networks that mirror the human brain</p>
+    </section>
+
+    <section class="section" id="technology">
+        <div class="content">
+            <div class="text-content">
+                <h3>What Are Neural Networks?</h3>
+                <p>Neural networks are computer systems inspired by the human brain. They consist of layers of nodes, or "neurons," that process data and learn patterns. These networks help machines recognize images, understand speech, and make intelligent predictions.</p>
+            </div>
+            <div class="visual-content">
+                <div class="neuron-viz" id="neuronViz"></div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="content reverse">
+            <div class="text-content">
+                <h3>How Neural Networks Work</h3>
+                <p>Neural networks work by passing data through multiple layers. Each layer transforms the input into a more abstract form, allowing the system to learn complex relationships. The learning process adjusts the strength of connections, called weights, to minimize errors.</p>
+            </div>
+            <div class="visual-content">
+                <canvas id="layerCanvas"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="types">
+        <div class="content">
+            <div class="text-content">
+                <h3>Types of Neural Networks</h3>
+                <p>There are different types of neural networks designed for specific tasks. Feedforward Neural Networks (FNN) are the simplest form where data moves in one direction. Convolutional Neural Networks (CNN) are commonly used for image recognition. Recurrent Neural Networks (RNN) are useful for sequential data like text or speech.</p>
+            </div>
+            <div class="visual-content">
+                <canvas id="typesCanvas"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <div class="content reverse">
+            <div class="text-content">
+                <h3>Applications of Neural Networks</h3>
+                <p>Neural networks are widely used in everyday technology, from face and voice recognition to medical diagnosis and self-driving cars. They help predict trends in finance, power recommendation systems, and improve decision-making in various industries by learning patterns from data.</p>
+            </div>
+            <div class="visual-content">
+                <canvas id="applicationsCanvas"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="future">
+        <div class="content">
+            <div class="text-content">
+                <h3>Impact on the Future</h3>
+                <p>Neural networks are shaping the future of technology. From AI assistants to smart cities, their ability to learn and adapt is transforming industries and everyday life. Continued research promises even more advanced, human-like intelligence in machines.</p>
+            </div>
+            <div class="visual-content">
+                <canvas id="futureCanvas"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <section id="features">
+        <div class="feature-grid">
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <h4>Lightning Fast</h4>
+                <p>Process millions of data points in milliseconds with parallel neural processing.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🧠</div>
+                <h4>Self-Learning</h4>
+                <p>Networks that improve autonomously through experience and feedback.</p>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🎯</div>
+                <h4>Precision</h4>
+                <p>Achieve unprecedented accuracy in pattern recognition and prediction.</p>
+            </div>
+        </div>
+    </section>
+
+    <script src="script.js"></script>
+</body>
+</html>
