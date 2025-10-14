@@ -12,6 +12,7 @@
             <h1>Neural Network</h1>
             <ul>
                 <li><a href="#home">Home</a></li>
+                <li><a href="#brain">Brain</a></li>
                 <li><a href="#technology">Technology</a></li>
                 <li><a href="#features">Features</a></li>
             </ul>
@@ -24,6 +25,62 @@
         </div>
         <h2>Artificial Neural Network</h2>
         <p>Experience the future of artificial intelligence with neural networks that mirror the human brain</p>
+    </section>
+
+    <!-- Interactive Brain Section -->
+    <section class="section brain-interactive" id="brain">
+        <div class="brain-container-main">
+            <h2>Explore the Brain</h2>
+            <p class="brain-subtitle">Click on different regions to learn more</p>
+            
+            <div class="brain-visualization">
+                <canvas id="interactiveBrain"></canvas>
+                
+                <div class="brain-buttons">
+                    <button class="brain-btn" data-region="cerebrum" style="top: 20%; left: 30%;">
+                        <span class="btn-dot"></span>
+                        <span class="btn-label">Memory</span>
+                    </button>
+                    
+                    <button class="brain-btn" data-region="cerebellum" style="top: 65%; left: 75%;">
+                        <span class="btn-dot"></span>
+                        <span class="btn-label">Balance</span>
+                    </button>
+                    
+                    <button class="brain-btn" data-region="brainstem" style="top: 75%; left: 50%;">
+                        <span class="btn-dot"></span>
+                        <span class="btn-label">Breathing</span>
+                    </button>
+                    
+                    <button class="brain-btn" data-region="limbic" style="top: 45%; left: 55%;">
+                        <span class="btn-dot"></span>
+                        <span class="btn-label">Emotions</span>
+                    </button>
+                    
+                    <button class="brain-btn" data-region="frontal" style="top: 30%; left: 15%;">
+                        <span class="btn-dot"></span>
+                        <span class="btn-label">Thinking</span>
+                    </button>
+                    
+                    <button class="brain-btn" data-region="occipital" style="top: 35%; left: 85%;">
+                        <span class="btn-dot"></span>
+                        <span class="btn-label">Vision</span>
+                    </button>
+                    
+                    <button class="brain-btn" data-region="temporal" style="top: 55%; left: 20%;">
+                        <span class="btn-dot"></span>
+                        <span class="btn-label">Hearing</span>
+                    </button>
+                </div>
+                
+                <button class="reset-btn" id="resetBrain">Reset View</button>
+            </div>
+            
+            <div class="brain-info" id="brainInfo">
+                <h3 id="regionName">Select a region</h3>
+                <p id="regionDescription">Click on any button to explore different parts of the brain</p>
+            </div>
+        </div>
     </section>
 
     <section class="section" id="technology">
@@ -62,11 +119,11 @@
         </div>
     </section>
 
-    <section class="section">
+    <section class="section" id="applications">
         <div class="content reverse">
             <div class="text-content">
-                <h3>Applications of Neural Networks</h3>
-                <p>Neural networks are widely used in everyday technology, from face and voice recognition to medical diagnosis and self-driving cars. They help predict trends in finance, power recommendation systems, and improve decision-making in various industries by learning patterns from data.</p>
+                <h3>Real-World Applications</h3>
+                <p>Neural networks power many modern technologies. They enable virtual assistants to understand your voice, help autonomous vehicles navigate roads, assist doctors in diagnosing diseases, and power recommendation systems that suggest content you might enjoy.</p>
             </div>
             <div class="visual-content">
                 <canvas id="applicationsCanvas"></canvas>
@@ -77,31 +134,11 @@
     <section class="section" id="future">
         <div class="content">
             <div class="text-content">
-                <h3>Impact on the Future</h3>
-                <p>Neural networks are shaping the future of technology. From AI assistants to smart cities, their ability to learn and adapt is transforming industries and everyday life. Continued research promises even more advanced, human-like intelligence in machines.</p>
+                <h3>The Future of AI</h3>
+                <p>As neural networks continue to evolve, they promise to revolutionize industries from healthcare to transportation. With advances in computing power and algorithms, we're moving toward more sophisticated AI systems that can learn and adapt in ways we're only beginning to understand.</p>
             </div>
             <div class="visual-content">
                 <canvas id="futureCanvas"></canvas>
-            </div>
-        </div>
-    </section>
-
-    <section id="features">
-        <div class="feature-grid">
-            <div class="feature-card">
-                <div class="feature-icon">⚡</div>
-                <h4>Lightning Fast</h4>
-                <p>Process millions of data points in milliseconds with parallel neural processing.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🧠</div>
-                <h4>Self-Learning</h4>
-                <p>Networks that improve autonomously through experience and feedback.</p>
-            </div>
-            <div class="feature-card">
-                <div class="feature-icon">🎯</div>
-                <h4>Precision</h4>
-                <p>Achieve unprecedented accuracy in pattern recognition and prediction.</p>
             </div>
         </div>
     </section>
