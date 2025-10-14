@@ -650,3 +650,503 @@ window.addEventListener('resize', () => {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 });
+
+// ============================================
+// Interactive 3D Brain Visualization
+// ============================================
+const brainCanvas = document.getElementById('interactiveBrain');
+const bctx = brainCanvas.getContext('2d');
+
+// Set explicit dimensions
+brainCanvas.width = 1200;
+brainCanvas.height = 700;
+
+const brainCenterX = brainCanvas.width / 2;
+const brainCenterY = brainCanvas.height / 2;
+
+// Brain regions data
+const brainRegions = {
+    cerebrum: {
+        name: 'Cerebrum - Memory',
+        description: 'The largest part of the brain, responsible for memory, learning, thinking, and voluntary movements.',
+        color: [255, 100, 100],
+        vertices: []
+    },
+    cerebellum: {
+        name: 'Cerebellum - Balance',
+        description: 'Located at the back of the brain, it coordinates balance, posture, and fine motor movements.',
+        color: [100, 255, 100],
+        vertices: []
+    },
+    brainstem: {
+        name: 'Brainstem - Breathing',
+        description: 'Controls automatic functions vital for survival including breathing, heart rate, and blood pressure.',
+        color: [100, 100, 255],
+        vertices: []
+    },
+    limbic: {
+        name: 'Limbic System - Emotions',
+        description: 'The emotional center of the brain, processing feelings, memories, and behavioral responses.',
+        color: [255, 100, 255],
+        vertices: []
+    },
+    frontal: {
+        name: 'Frontal Lobe - Thinking',
+        description: 'Responsible for decision making, problem solving, planning, and personality.',
+        color: [255, 200, 100],
+        vertices: []
+    },
+    occipital: {
+        name: 'Occipital Lobe - Vision',
+        description: 'Processes visual information from the eyes and helps us interpret what we see.',
+        color: [100, 255, 255],
+        vertices: []
+    },
+    temporal: {
+        name: 'Temporal Lobe - Hearing',
+        description: 'Processes auditory information and plays a role in memory and speech.',
+        color: [200, 100, 255],
+        vertices: []
+    }
+};
+
+// Create brain mesh structure that looks like the reference image
+function createBrainMesh() {
+    // Main cerebrum with pronounced gyri (ridges) and sulci (grooves)
+    const cerebrumSegments = 100;
+    const cerebrumRings = 50;
+    
+    for (let i = 0; i < cerebrumRings; i++) {
+        for (let j = 0; j < cerebrumSegments; j++) {
+            const u = j / cerebrumSegments;
+            const v = i / cerebrumRings;
+            
+            // Create elongated brain shape
+            const theta = u * Math.PI * 2;
+            const phi = v * Math.PI * 0.7;
+            
+            // Base brain shape - elongated oval
+            let r = 130 * Math.sin(phi);
+            
+            // Create realistic brain wrinkles (gyri and sulci)
+            const longitudinalFolds = Math.sin(theta * 5 + phi * 2) * 10; // Vertical folds
+            const lateralFolds = Math.sin(theta * 7 - phi * 3) * 8; // Horizontal folds
+            const microFolds = Math.sin(theta * 15) * Math.cos(phi * 12) * 4; // Fine detail
+            
+            r += longitudinalFolds + lateralFolds + microFolds;
+            
+            // Make it brain-shaped (wider at back, narrower at front)
+            const frontBackScale = 0.85 + Math.sin(theta) * 0.15;
+            const sideScale = 1.0 + Math.cos(theta) * 0.1;
+            
+            const x = r * Math.cos(theta) * frontBackScale * 0.9;
+            const y = -90 + 110 * Math.cos(phi);
+            const z = r * Math.sin(theta) * sideScale;
+            
+            brainRegions.cerebrum.vertices.push({ x, y, z });
+        }
+    }
+    
+    // Frontal lobe - front bulging part with distinct folds
+    const frontalSegments = 50;
+    const frontalRings = 30;
+    
+    for (let i = 0; i < frontalRings; i++) {
+        for (let j = 0; j < frontalSegments; j++) {
+            const u = j / frontalSegments;
+            const v = i / frontalRings;
+            
+            const theta = u * Math.PI * 1.4 - Math.PI * 0.7;
+            const phi = v * Math.PI * 0.6;
+            
+            // Frontal lobe folds
+            const folds = Math.sin(theta * 6) * Math.cos(phi * 5) * 6;
+            const r = (105 + folds) * Math.sin(phi);
+            
+            const x = -115 + r * Math.cos(theta) * 0.6;
+            const y = -65 + 95 * Math.cos(phi);
+            const z = r * Math.sin(theta) * 0.9;
+            
+            brainRegions.frontal.vertices.push({ x, y, z });
+        }
+    }
+    
+    // Occipital lobe - back rounded part
+    const occipitalSegments = 50;
+    const occipitalRings = 30;
+    
+    for (let i = 0; i < occipitalRings; i++) {
+        for (let j = 0; j < occipitalSegments; j++) {
+            const u = j / occipitalSegments;
+            const v = i / occipitalRings;
+            
+            const theta = u * Math.PI * 1.4 + Math.PI * 0.3;
+            const phi = v * Math.PI * 0.58;
+            
+            const folds = Math.sin(theta * 5) * Math.cos(phi * 6) * 5;
+            const r = (100 + folds) * Math.sin(phi);
+            
+            const x = 100 + r * Math.cos(theta) * 0.7;
+            const y = -50 + 88 * Math.cos(phi);
+            const z = r * Math.sin(theta);
+            
+            brainRegions.occipital.vertices.push({ x, y, z });
+        }
+    }
+    
+    // Temporal lobes - side parts with horizontal folds
+    const temporalSegments = 40;
+    const temporalRings = 25;
+    
+    // Left temporal
+    for (let i = 0; i < temporalRings; i++) {
+        for (let j = 0; j < temporalSegments; j++) {
+            const u = j / temporalSegments;
+            const v = i / temporalRings;
+            
+            const theta = u * Math.PI * 1.2 - Math.PI * 1.1;
+            const phi = v * Math.PI * 0.52;
+            
+            const horizontalFolds = Math.sin(phi * 8) * 4; // Horizontal grooves
+            const r = (85 + horizontalFolds) * Math.sin(phi);
+            
+            const x = -15 + r * Math.cos(theta) * 0.5;
+            const y = 20 + 72 * Math.cos(phi);
+            const z = -105 + r * Math.sin(theta);
+            
+            brainRegions.temporal.vertices.push({ x, y, z });
+        }
+    }
+    
+    // Right temporal
+    for (let i = 0; i < temporalRings; i++) {
+        for (let j = 0; j < temporalSegments; j++) {
+            const u = j / temporalSegments;
+            const v = i / temporalRings;
+            
+            const theta = u * Math.PI * 1.2 - Math.PI * 1.1;
+            const phi = v * Math.PI * 0.52;
+            
+            const horizontalFolds = Math.sin(phi * 8) * 4;
+            const r = (85 + horizontalFolds) * Math.sin(phi);
+            
+            const x = -15 + r * Math.cos(theta) * 0.5;
+            const y = 20 + 72 * Math.cos(phi);
+            const z = 105 + r * Math.sin(theta);
+            
+            brainRegions.temporal.vertices.push({ x, y, z });
+        }
+    }
+    
+    // Cerebellum - small tightly folded structure at back bottom
+    const cerebellumSegments = 60;
+    const cerebellumRings = 35;
+    
+    for (let i = 0; i < cerebellumRings; i++) {
+        for (let j = 0; j < cerebellumSegments; j++) {
+            const u = j / cerebellumSegments;
+            const v = i / cerebellumRings;
+            
+            const theta = u * Math.PI * 2;
+            const phi = v * Math.PI * 0.68;
+            
+            // Very tight parallel folds characteristic of cerebellum
+            const tightFolds = Math.sin(theta * 20) * Math.cos(phi * 15) * 2;
+            const r = (58 + tightFolds) * Math.sin(phi);
+            
+            const x = 95 + r * Math.cos(theta) * 0.85;
+            const y = 55 + 58 * Math.cos(phi);
+            const z = r * Math.sin(theta) * 0.9;
+            
+            brainRegions.cerebellum.vertices.push({ x, y, z });
+        }
+    }
+    
+    // Brainstem - smooth cylinder
+    const brainstemSegments = 24;
+    const brainstemHeight = 32;
+    
+    for (let i = 0; i < brainstemHeight; i++) {
+        for (let j = 0; j < brainstemSegments; j++) {
+            const theta = (j / brainstemSegments) * Math.PI * 2;
+            const r = 21 - (i * 0.28);
+            
+            const x = r * Math.cos(theta) + 18;
+            const y = 65 + i * 3.8;
+            const z = r * Math.sin(theta);
+            
+            brainRegions.brainstem.vertices.push({ x, y, z });
+        }
+    }
+    
+    // Limbic system - curved inner structure
+    const limbicSegments = 45;
+    const limbicRings = 28;
+    
+    for (let i = 0; i < limbicRings; i++) {
+        for (let j = 0; j < limbicSegments; j++) {
+            const u = j / limbicSegments;
+            const v = i / limbicRings;
+            
+            const t = u * Math.PI * 1.8 + Math.PI * 0.1;
+            const phi = v * Math.PI * 0.62;
+            
+            const r = 45 * Math.sin(phi);
+            const curveRadius = 38;
+            
+            const x = curveRadius * Math.cos(t) + r * Math.cos(t) * 0.25;
+            const y = -2 + curveRadius * Math.sin(t) * 0.55 + 45 * Math.cos(phi);
+            const z = r * Math.sin(phi) * 0.48;
+            
+            brainRegions.limbic.vertices.push({ x, y, z });
+        }
+    }
+}
+
+createBrainMesh();
+
+let brainRotationX = -0.2;
+let brainRotationY = 0;
+let targetRotationX = -0.2;
+let targetRotationY = 0;
+let brainZoom = 1;
+let targetZoom = 1;
+let activeRegion = null;
+let highlightIntensity = 0;
+
+// Rotation and projection functions
+function rotateBrain3D(point, angleX, angleY) {
+    let y = point.y * Math.cos(angleX) - point.z * Math.sin(angleX);
+    let z = point.y * Math.sin(angleX) + point.z * Math.cos(angleX);
+    
+    let x = point.x * Math.cos(angleY) - z * Math.sin(angleY);
+    z = point.x * Math.sin(angleY) + z * Math.cos(angleY);
+    
+    return { x, y, z };
+}
+
+function projectBrain(point) {
+    const scale = (300 / (300 + point.z)) * brainZoom;
+    return {
+        x: brainCenterX + point.x * scale,
+        y: brainCenterY + point.y * scale,
+        z: point.z
+    };
+}
+
+function animateInteractiveBrain() {
+    bctx.clearRect(0, 0, brainCanvas.width, brainCanvas.height);
+    
+    // Smooth rotation
+    brainRotationY += (targetRotationY - brainRotationY) * 0.1;
+    brainRotationX += (targetRotationX - brainRotationX) * 0.1;
+    brainZoom += (targetZoom - brainZoom) * 0.1;
+    
+    if (activeRegion) {
+        brainRotationY += 0.005;
+        highlightIntensity = Math.sin(Date.now() * 0.003) * 0.3 + 0.7;
+    } else {
+        brainRotationY += 0.003;
+        highlightIntensity = 0;
+    }
+    
+    // Draw all brain regions with wireframe style
+    Object.keys(brainRegions).forEach(regionKey => {
+        const region = brainRegions[regionKey];
+        const isActive = activeRegion === regionKey;
+        
+        const projectedVertices = region.vertices.map(v => {
+            const rotated = rotateBrain3D(v, brainRotationX, brainRotationY);
+            return projectBrain(rotated);
+        });
+        
+        // Calculate segments and rings based on vertex count
+        let segments, rings;
+        if (regionKey === 'cerebrum') {
+            segments = 100;
+            rings = 50;
+        } else if (regionKey === 'frontal' || regionKey === 'occipital') {
+            segments = 50;
+            rings = 30;
+        } else if (regionKey === 'temporal') {
+            segments = 40;
+            rings = 25;
+        } else if (regionKey === 'cerebellum') {
+            segments = 60;
+            rings = 35;
+        } else if (regionKey === 'brainstem') {
+            segments = 24;
+            rings = 32;
+        } else if (regionKey === 'limbic') {
+            segments = 45;
+            rings = 28;
+        }
+        
+        const baseColor = region.color;
+        const colorStr = isActive 
+            ? `rgba(255, 80, 80, ${0.6 * (highlightIntensity + 0.3)})`
+            : `rgba(${baseColor[0]}, ${baseColor[1]}, ${baseColor[2]}, 0.4)`;
+        
+        bctx.strokeStyle = colorStr;
+        bctx.lineWidth = isActive ? 1.2 : 0.8;
+        
+        // Draw horizontal grid lines (latitude)
+        for (let i = 0; i < rings; i++) {
+            bctx.beginPath();
+            let firstPoint = true;
+            
+            for (let j = 0; j <= segments; j++) {
+                const idx = i * segments + (j % segments);
+                if (idx < projectedVertices.length) {
+                    const v = projectedVertices[idx];
+                    
+                    if (v.z > -200) {
+                        if (firstPoint) {
+                            bctx.moveTo(v.x, v.y);
+                            firstPoint = false;
+                        } else {
+                            bctx.lineTo(v.x, v.y);
+                        }
+                    }
+                }
+            }
+            bctx.stroke();
+        }
+        
+        // Draw vertical grid lines (longitude)
+        for (let j = 0; j < segments; j++) {
+            bctx.beginPath();
+            let firstPoint = true;
+            
+            for (let i = 0; i < rings; i++) {
+                const idx = i * segments + j;
+                if (idx < projectedVertices.length) {
+                    const v = projectedVertices[idx];
+                    
+                    if (v.z > -200) {
+                        if (firstPoint) {
+                            bctx.moveTo(v.x, v.y);
+                            firstPoint = false;
+                        } else {
+                            bctx.lineTo(v.x, v.y);
+                        }
+                    }
+                }
+            }
+            bctx.stroke();
+        }
+        
+        // Add glow effect for active region
+        if (isActive) {
+            bctx.shadowBlur = 15 * highlightIntensity;
+            bctx.shadowColor = 'rgba(255, 50, 50, 0.8)';
+            
+            // Redraw with glow
+            bctx.strokeStyle = `rgba(255, 100, 100, ${0.8 * highlightIntensity})`;
+            bctx.lineWidth = 1.5;
+            
+            // Draw a few key lines with glow
+            for (let i = 0; i < rings; i += 3) {
+                bctx.beginPath();
+                let firstPoint = true;
+                
+                for (let j = 0; j <= segments; j++) {
+                    const idx = i * segments + (j % segments);
+                    if (idx < projectedVertices.length) {
+                        const v = projectedVertices[idx];
+                        
+                        if (v.z > -100) {
+                            if (firstPoint) {
+                                bctx.moveTo(v.x, v.y);
+                                firstPoint = false;
+                            } else {
+                                bctx.lineTo(v.x, v.y);
+                            }
+                        }
+                    }
+                }
+                bctx.stroke();
+            }
+            
+            bctx.shadowBlur = 0;
+        }
+    });
+    
+    requestAnimationFrame(animateInteractiveBrain);
+}
+
+animateInteractiveBrain();
+
+// Button interactions
+const brainButtons = document.querySelectorAll('.brain-btn');
+const resetBtn = document.getElementById('resetBrain');
+const regionName = document.getElementById('regionName');
+const regionDescription = document.getElementById('regionDescription');
+
+brainButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        const region = btn.dataset.region;
+        
+        // Remove active class from all buttons
+        brainButtons.forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        
+        // Set active region
+        activeRegion = region;
+        
+        // Update info
+        regionName.textContent = brainRegions[region].name;
+        regionDescription.textContent = brainRegions[region].description;
+        
+        // Zoom and rotate to region
+        targetZoom = 1.5;
+        
+        // Adjust rotation based on region
+        switch(region) {
+            case 'cerebrum':
+                targetRotationX = -0.3;
+                targetRotationY = 0.2;
+                break;
+            case 'cerebellum':
+                targetRotationX = 0.2;
+                targetRotationY = 2.5;
+                break;
+            case 'brainstem':
+                targetRotationX = 0.5;
+                targetRotationY = 3.14;
+                break;
+            case 'limbic':
+                targetRotationX = 0;
+                targetRotationY = 0;
+                break;
+            case 'frontal':
+                targetRotationX = -0.2;
+                targetRotationY = -0.5;
+                break;
+            case 'occipital':
+                targetRotationX = -0.2;
+                targetRotationY = 2.5;
+                break;
+            case 'temporal':
+                targetRotationX = 0.1;
+                targetRotationY = -1;
+                break;
+        }
+    });
+});
+
+resetBtn.addEventListener('click', () => {
+    brainButtons.forEach(b => b.classList.remove('active'));
+    activeRegion = null;
+    targetZoom = 1;
+    targetRotationX = -0.2;
+    targetRotationY = 0;
+    
+    regionName.textContent = 'Select a region';
+    regionDescription.textContent = 'Click on any button to explore different parts of the brain';
+});
+
+window.addEventListener('resize', () => {
+    brainCanvas.width = brainCanvas.offsetWidth;
+    brainCanvas.height = brainCanvas.offsetHeight;
+});
